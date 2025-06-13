@@ -119,6 +119,9 @@ LT_PANEL_FILE = "lt_panel_log.xlsx"
 
 def lt_panel_ui():
     st.title("📊 LT Panel Readings Entry")
+    if os.path.exists(LT_PANEL_FILE):
+        with open(LT_PANEL_FILE, "rb") as file:
+            st.download_button("📥 Download LT Panel Sheet", file, file_name="lt_panel_log.xlsx")
 
     with st.form("lt_panel_form"):
         st.subheader("General Information")
@@ -140,11 +143,6 @@ def lt_panel_ui():
         if submitted:
             save_lt_panel_data(date, shift, time, reader, readings)
             st.success("✅ LT Panel data saved successfully!")
-
-    if os.path.exists(LT_PANEL_FILE):
-        with open(LT_PANEL_FILE, "rb") as file:
-            st.download_button("📥 Download LT Panel Sheet", file, file_name="lt_panel_log.xlsx")
-
 
 
 def lt_panel_input(panel_name):
@@ -230,6 +228,11 @@ def compressor_excel_logger():
 
     EXCEL_PATH = "compressor_log.xlsx"
 
+    # 🔽 Moved download button to the top
+    if os.path.exists(EXCEL_PATH):
+        with open(EXCEL_PATH, "rb") as f:
+            st.download_button("📥 Download Compressor Log File", f, file_name="compressor_log.xlsx")
+
     compressor_units = {
         "Unit 1 (37 KW)": {},
         "Unit 2 (37 KW)": {},
@@ -295,14 +298,17 @@ def compressor_excel_logger():
                         data["PressBar"]
                     ])
 
+                    # Formatting
                     border = Border(left=Side(style="thin"), right=Side(style="thin"),
                                     top=Side(style="thin"), bottom=Side(style="thin"))
                     for row in ws.iter_rows():
                         for cell in row:
                             cell.border = border
                             cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
                     for cell in ws[1]:
                         cell.font = Font(bold=True)
+
                     for col in ws.columns:
                         max_len = max(len(str(cell.value)) for cell in col if cell.value)
                         ws.column_dimensions[col[0].column_letter].width = max_len + 2
@@ -313,9 +319,6 @@ def compressor_excel_logger():
             except Exception as err:
                 st.error(f"❌ Failed to log data: {err}")
 
-    if os.path.exists(EXCEL_PATH):
-        with open(EXCEL_PATH, "rb") as f:
-            st.download_button("📥 Download Compressor Log File", f, file_name="compressor_log.xlsx")
 
 CHILLER_EXCEL_FILE = "chiller_readings.xlsx"
 
@@ -374,6 +377,11 @@ def save_chiller_data_separate_sheets(shift, time, chiller_readings):
 def chiller_ui():
     st.title("🌬️ Daily Chillers Checklist")
 
+    # 📥 Show download button at the top
+    if os.path.exists(CHILLER_EXCEL_FILE):
+        with open(CHILLER_EXCEL_FILE, "rb") as file:
+            st.download_button("📥 Download Chiller Excel File", file, file_name=CHILLER_EXCEL_FILE)
+
     with st.form("chiller_form"):
         shift = st.selectbox("Shift", ["A", "B", "C"])
         time = st.time_input("Time", value=datetime.now().time())
@@ -398,11 +406,6 @@ def chiller_ui():
         if submitted:
             save_chiller_data_separate_sheets(shift, time, chiller_readings)
             st.success("✅ Chiller readings saved to separate sheets!")
-
-    if os.path.exists(CHILLER_EXCEL_FILE):
-        with open(CHILLER_EXCEL_FILE, "rb") as file:
-            st.download_button("📥 Download Chiller Excel File", file, file_name=CHILLER_EXCEL_FILE)
-
 
 
 def run_app():

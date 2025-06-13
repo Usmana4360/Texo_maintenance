@@ -20,7 +20,7 @@ HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-I
 
 # ---------------------- Maintenance Report Generator ----------------------
 def maintenance_report_ui():
-    st.title("📝 AI-Powered Maintenance Report Generator (Mistral)")
+    st.title("📝 AI-Powered Maintenance Report Generator")
 
     col1, col2 = st.columns(2)
     with col1:
@@ -122,6 +122,8 @@ def lt_panel_ui():
     if os.path.exists(LT_PANEL_FILE):
         with open(LT_PANEL_FILE, "rb") as file:
             st.download_button("📥 Download LT Panel Sheet", file, file_name="lt_panel_log.xlsx")
+    if st.button("Show LT Panel Trends"):
+        show_lt_panel_trend()
 
     with st.form("lt_panel_form"):
         st.subheader("General Information")
@@ -220,6 +222,63 @@ def save_lt_panel_data(date, shift, time, reader, readings):
             ws.column_dimensions[col[0].column_letter].width = max_len + 2
 
     wb.save(LT_PANEL_FILE)
+
+def show_lt_panel_trend():
+    st.title("📈 LT Panel Power Trends")
+
+    if not os.path.exists(LT_PANEL_FILE):
+        st.warning("⚠️ LT Panel Excel file not found.")
+        return
+
+    try:
+        wb = load_workbook(LT_PANEL_FILE, data_only=True)
+    except Exception as e:
+        st.error(f"❌ Failed to load Excel file: {e}")
+        return
+
+    panel_names = wb.sheetnames
+    selected_panels = st.multiselect("Select Panels", panel_names, default=panel_names[:2])
+    parameter = st.selectbox("Select Parameter", ["Volt", "Amp", "PF", "Temp"], key="lt_param")
+
+    if not selected_panels:
+        st.warning("Please select at least one panel.")
+        return
+
+    combined_df = pd.DataFrame()
+
+    for panel in selected_panels:
+        try:
+            ws = wb[panel]
+            data = list(ws.values)
+            df = pd.DataFrame(data[1:], columns=data[0])  # Skip header
+
+            df[parameter] = pd.to_numeric(df[parameter], errors='coerce')
+
+            # Combine Date + Time into a datetime column
+            df["Timestamp"] = pd.to_datetime(df["Date"] + " " + df["Time"], format="%Y-%m-%d %H:%M", errors="coerce")
+
+            df = df.dropna(subset=[parameter, "Timestamp"])
+            df["Panel"] = panel
+
+            combined_df = pd.concat([combined_df, df], ignore_index=True)
+        except Exception as e:
+            st.warning(f"Skipping {panel} due to error: {e}")
+
+    if combined_df.empty:
+        st.warning("No data available to display.")
+        return
+
+    fig = px.line(
+        combined_df,
+        x="Timestamp",
+        y=parameter,
+        color="Panel",
+        markers=True,
+        title=f"{parameter} Trend Over Time",
+        labels={"Timestamp": "Date & Time", parameter: parameter, "Panel": "Panel"}
+    )
+    fig.update_layout(xaxis_title="Date & Time", yaxis_title=parameter)
+    st.plotly_chart(fig, use_container_width=True)
 
 # ---------------------- Compressor Readings Logger ----------------------
 
@@ -381,6 +440,8 @@ def chiller_ui():
     if os.path.exists(CHILLER_EXCEL_FILE):
         with open(CHILLER_EXCEL_FILE, "rb") as file:
             st.download_button("📥 Download Chiller Excel File", file, file_name=CHILLER_EXCEL_FILE)
+    if st.button("Show Chiller Trend"):
+        show_multi_chiller_trend()
 
     with st.form("chiller_form"):
         shift = st.selectbox("Shift", ["A", "B", "C"])
@@ -406,6 +467,67 @@ def chiller_ui():
         if submitted:
             save_chiller_data_separate_sheets(shift, time, chiller_readings)
             st.success("✅ Chiller readings saved to separate sheets!")
+    
+import plotly.express as px
+import pandas as pd
+import os
+
+def show_multi_chiller_trend():
+    if not os.path.exists(CHILLER_EXCEL_FILE):
+        st.warning("❌ Chiller Excel file not found.")
+        return
+
+    try:
+        wb = load_workbook(CHILLER_EXCEL_FILE, data_only=True)
+    except Exception as e:
+        st.error(f"⚠️ Failed to load Excel file: {e}")
+        return
+
+    sheet_names = wb.sheetnames
+    selected_chillers = st.multiselect("Select Chillers to Compare", sheet_names, default=sheet_names[:11])
+    selected_metric = st.selectbox("Select Parameter", ["AMP", "COOLING TEMP", "PRESSURE", "OIL LEVEL"], key="multi_metric")
+
+    if not selected_chillers:
+        st.warning("Please select at least one chiller.")
+        return
+
+    combined_df = pd.DataFrame()
+
+    for chiller in selected_chillers:
+        try:
+            ws = wb[chiller]
+            data = list(ws.values)
+            df = pd.DataFrame(data[1:], columns=data[0])  # Skip header row
+
+            df[selected_metric] = pd.to_numeric(df[selected_metric], errors='coerce')
+
+            # ✅ Specify time format here
+            df["TIME_PARSED"] = pd.to_datetime(df["TIME"], format="%I:%M %p", errors='coerce')
+
+            df = df.dropna(subset=[selected_metric, "TIME_PARSED"])
+            df["CHILLER"] = chiller
+
+            combined_df = pd.concat([combined_df, df], ignore_index=True)
+        except Exception as e:
+            st.warning(f"⚠️ Skipping {chiller} due to error: {e}")
+
+    if combined_df.empty:
+        st.warning("No data available to display.")
+        return
+
+    fig = px.line(
+        combined_df,
+        x="TIME_PARSED",
+        y=selected_metric,
+        color="CHILLER",
+        markers=True,
+        title=f"Multi-Chiller Trend - {selected_metric}",
+        labels={"TIME_PARSED": "Time", selected_metric: selected_metric, "CHILLER": "Chiller"}
+    )
+    fig.update_layout(xaxis_title="Time", yaxis_title=selected_metric)
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 
 def run_app():

@@ -353,8 +353,8 @@ def compressor_excel_logger():
 
 # ---------------------- Chiller Readings ----------------------
 CHILLER_NAMES = {
-    "CHILLER 1 (UNIT 1)": "Chiller1",
-    "CHILLER 2 (BACKUP)": "Chiller2",
+    "120 HP Water Cooled Chiller (UNIT 1)": "Chiller1",
+    "56 HP Air Cooled Chiller  (UNIT 1)": "Chiller2",
     "CHILLER 3 (UNIT 2)": "Chiller3",
     "CHILLER 4 (UNIT 3)": "Chiller4",
     "CHILLER 5 (BACKUP)": "Chiller5",

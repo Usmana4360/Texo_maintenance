@@ -355,15 +355,15 @@ def compressor_excel_logger():
 CHILLER_NAMES = {
     "120 HP Water Cooled Chiller (UNIT 1)": "Chiller1",
     "56 HP Air Cooled Chiller  (UNIT 1)": "Chiller2",
-    "CHILLER 3 (UNIT 2)": "Chiller3",
-    "CHILLER 4 (UNIT 3)": "Chiller4",
-    "CHILLER 5 (BACKUP)": "Chiller5",
-    "CHILLER 6 (UNIT 3)": "Chiller6",
-    "CHILLER 7 (UNIT 4)": "Chiller7",
-    "CHILLER 8 (BACKUP)": "Chiller8",
-    "CHILLER 9 (UNIT 6)": "Chiller9",
-    "CHILLER 10 (UNIT 8)": "Chiller10",
-    "CHILLER 11 (UNIT 8)": "Chiller11", 
+    "120 HP Water Cooled Chiller (UNIT 3)": "Chiller3",
+    "37 HP Water Cooled Chiller (UNIT 3)": "Chiller4",
+    "100 HP Air Cooled Chiller (UNIT 3)": "Chiller5",
+    "120 HP Water Cooled Chiller (UNIT 4)": "Chiller6",
+    "100 HP Air Cooled Chiller (UNIT 6)": "Chiller7",
+    "70 HP Air Cooled Chiller (UNIT 6)": "Chiller8",
+    "70 HP Air Cooled Chiller (UNIT 6)": "Chiller9",
+    "56 HP Air Cooled Chiller (UNIT 8)": "Chiller10",
+    "50 HP Air Cooled Chiller (UNIT 8)": "Chiller11", 
 }
 
 def save_chiller_data(shift, time, chiller_readings):
